@@ -36,7 +36,9 @@ jobs:
             .\tools\Verify-Install-WebView2Missing.ps1 -InstallerPath $installer
           }
           catch {
-            "## Verification failure`n`n````text`n$($_.Exception.Message)`n````" | Add-Content $env:GITHUB_STEP_SUMMARY
+            $reason = $_.Exception.Message -replace '[\r\n]+', ' '
+            "## Verification failure`n`n````text`n$reason`n````" | Add-Content $env:GITHUB_STEP_SUMMARY
+            Write-Output "::error title=WebView2-missing install verification::$reason"
             throw
           }
 
