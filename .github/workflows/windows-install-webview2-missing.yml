@@ -30,7 +30,15 @@ jobs:
 
       - name: Remove WebView2 and verify a clean starting state
         shell: pwsh
-        run: .\tools\Verify-Install-WebView2Missing.ps1 -InstallerPath (Get-ChildItem artifacts\installer\Auvryxel-Setup-*-win-x64.exe | Select-Object -First 1 -ExpandProperty FullName)
+        run: |
+          try {
+            $installer = Get-ChildItem artifacts\installer\Auvryxel-Setup-*-win-x64.exe | Select-Object -First 1 -ExpandProperty FullName
+            .\tools\Verify-Install-WebView2Missing.ps1 -InstallerPath $installer
+          }
+          catch {
+            "## Verification failure`n`n````text`n$($_.Exception.Message)`n````" | Add-Content $env:GITHUB_STEP_SUMMARY
+            throw
+          }
 
       - name: Preserve verification screenshot
         if: always()
