@@ -1,0 +1,41 @@
+name: Windows install without WebView2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'Auvryxel.csproj'
+      - 'Assets/**'
+      - '*.cs'
+      - '*.xaml'
+      - 'installer/**'
+      - 'tools/Build-Installer.ps1'
+      - 'tools/Verify-Install-WebView2Missing.ps1'
+      - '.github/workflows/windows-install-webview2-missing.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  install-and-first-browse:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the x64 self-contained setup
+        shell: pwsh
+        run: .\tools\Build-Installer.ps1
+
+      - name: Remove WebView2 and verify a clean starting state
+        shell: pwsh
+        run: .\tools\Verify-Install-WebView2Missing.ps1 -InstallerPath (Get-ChildItem artifacts\installer\Auvryxel-Setup-*-win-x64.exe | Select-Object -First 1 -ExpandProperty FullName)
+
+      - name: Preserve verification screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auvryxel-windows-first-browse
+          path: artifacts/verification
+          if-no-files-found: ignore
