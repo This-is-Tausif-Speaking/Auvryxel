@@ -17,7 +17,7 @@ public partial class MainWindow : Window
     private readonly string _dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StillBrowser");
     private readonly ObservableCollection<BrowserTab> _tabs = new();
     private readonly List<QuickLink> _links = new();
-    private CoreWebView2Environment? _environment;
+    private Task<CoreWebView2Environment>? _environmentTask;
     private BrowserTab? _activeTab;
     private string _themeFile = "";
     private bool _isDark;
@@ -36,27 +36,13 @@ public partial class MainWindow : Window
         StoragePathLabel.Text = _dataFolder;
         LoadLinks();
         RenderLinks();
-        Loaded += async (_, _) =>
-        {
-            try
-            {
-                var options = new CoreWebView2EnvironmentOptions { EnableTrackingPrevention = true };
-                _environment = await CoreWebView2Environment.CreateAsync(userDataFolder: _dataFolder, options: options);
-                CreateTab();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text = "Browser engine could not start";
-                MessageBox.Show(this, "Auvryxel uses the Microsoft WebView2 runtime installed on this PC. Install or repair that runtime, then open Auvryxel again.\n\n" + ex.Message, "Auvryxel could not start", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        };
+        Loaded += (_, _) => CreateTab();
         PreviewKeyDown += Window_PreviewKeyDown;
         Closing += (_, _) => SaveLinks();
     }
 
     private BrowserTab? CreateTab(string? address = null)
     {
-        if (_environment is null) return null;
         var dark = _isDark;
         var view = new WebView2
         {
@@ -105,7 +91,7 @@ public partial class MainWindow : Window
                 {
                     var popupTab = CreateTab();
                     if (popupTab is null) return;
-                    e.NewWindow = await popupTab.CoreReady.Task;
+                    e.NewWindow = await InitializeTabAsync(popupTab);
                 }
                 catch
                 {
@@ -145,17 +131,52 @@ public partial class MainWindow : Window
                 }
                 UpdateAddress(tab);
             };
-            if (!string.IsNullOrWhiteSpace(address)) core.Navigate(address);
         };
-        _ = InitializeTabAsync(view, tab);
         SelectTab(tab);
+        if (!string.IsNullOrWhiteSpace(address)) _ = NavigateTabAsync(tab, address);
         return tab;
     }
 
-    private async Task InitializeTabAsync(WebView2 view, BrowserTab tab)
+    private async Task<CoreWebView2> InitializeTabAsync(BrowserTab tab)
     {
-        try { await view.EnsureCoreWebView2Async(_environment); }
-        catch (Exception ex) { tab.CoreReady.TrySetException(ex); }
+        if (tab.CoreReady.Task.IsCompleted) return await tab.CoreReady.Task;
+        if (tab.InitializationTask is null) tab.InitializationTask = InitializeTabCoreAsync(tab);
+        return await tab.InitializationTask;
+    }
+
+    private async Task<CoreWebView2> InitializeTabCoreAsync(BrowserTab tab)
+    {
+        try
+        {
+            _environmentTask ??= CoreWebView2Environment.CreateAsync(
+                userDataFolder: _dataFolder,
+                options: new CoreWebView2EnvironmentOptions { EnableTrackingPrevention = true });
+            var environment = await _environmentTask;
+            await tab.View.EnsureCoreWebView2Async(environment);
+            return await tab.CoreReady.Task;
+        }
+        catch (Exception ex)
+        {
+            tab.CoreReady.TrySetException(ex);
+            throw;
+        }
+    }
+
+    private async Task NavigateTabAsync(BrowserTab tab, string address)
+    {
+        try
+        {
+            var core = await InitializeTabAsync(tab);
+            core.Navigate(address);
+        }
+        catch (Exception ex)
+        {
+            tab.IsHome = true;
+            HomeView.Visibility = Visibility.Visible;
+            BrowserHost.Visibility = Visibility.Collapsed;
+            StatusText.Text = "Browser engine could not start";
+            MessageBox.Show(this, "Auvryxel needs Microsoft's WebView2 Runtime. If it is missing, connect to Wi-Fi and rerun Auvryxel Setup.\n\n" + ex.Message, "Auvryxel could not start", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private static string GetPermissionOrigin(string address)
@@ -215,8 +236,7 @@ public partial class MainWindow : Window
         BrowserHost.Visibility = Visibility.Visible;
         _activeTab.View.Visibility = Visibility.Visible;
         StatusText.Text = "Opening link…";
-        if (_activeTab.View.CoreWebView2 is { } core) core.Navigate(uri.AbsoluteUri);
-        else _activeTab.View.Source = uri;
+        _ = NavigateTabAsync(_activeTab, uri.AbsoluteUri);
     }
 
     private void LoadLinks()
@@ -401,7 +421,7 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e)
     {
         AppMenuPopup.IsOpen = false;
-        MessageBox.Show(this, $"Auvryxel is a small, account-free browser for direct links. Strict tracking prevention is enabled using WebView2's built-in tracker list. It blocks many known trackers, though it cannot identify every tracker or stop a site from recording your visit to itself.\n\nYour profile and downloads are stored here:\n{_dataFolder}\n\nPage rendering and tracker protection use the Microsoft WebView2 Runtime installed on this PC.", "About Auvryxel", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(this, $"Auvryxel is a small, account-free browser for direct links. Strict tracking prevention is enabled using WebView2's built-in tracker list. It blocks many known trackers, though it cannot identify every tracker or stop a site from recording your visit to itself.\n\nYour profile and downloads are stored here:\n{_dataFolder}\n\nPage rendering and tracker protection use Microsoft's WebView2 Runtime.", "About Auvryxel", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void PrivacyDashboard_Click(object sender, RoutedEventArgs e)
@@ -435,5 +455,6 @@ public partial class MainWindow : Window
         public bool IsHome { get; set; }
         public Brush TabBackground { get; set; } = Brushes.Transparent;
         public TaskCompletionSource<CoreWebView2> CoreReady { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public Task<CoreWebView2>? InitializationTask { get; set; }
     }
 }
