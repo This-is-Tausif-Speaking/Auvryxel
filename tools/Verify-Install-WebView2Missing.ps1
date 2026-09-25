@@ -33,7 +33,8 @@ if ($installedRuntimes.Count -gt 0) {
     Get-Process msedgewebview2 -ErrorAction SilentlyContinue | Stop-Process -Force
     $uninstaller = $uninstallers[0].FullName
     $remove = Start-Process -FilePath $uninstaller -ArgumentList @('--uninstall', '--msedgewebview', '--system-level', '--verbose-logging', '--force-uninstall') -Wait -PassThru
-    if ($remove.ExitCode -ne 0) { throw "WebView2 uninstaller exited with code $($remove.ExitCode)." }
+    # Some Evergreen builds return unmapped code 19; the registry check below is the actual success condition.
+    if ($remove.ExitCode -notin @(0, 19)) { throw "WebView2 uninstaller exited with code $($remove.ExitCode)." }
 }
 
 $remaining = @(Get-WebView2Versions)
