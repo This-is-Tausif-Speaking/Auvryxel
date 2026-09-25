@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Auvryxel mark</title>
+  <defs>
+    <linearGradient id="aurora" x1="92" y1="408" x2="413" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#72E4C0"/>
+      <stop offset=".55" stop-color="#A0E8D6"/>
+      <stop offset="1" stop-color="#B5C8FF"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientTransform="matrix(166 0 0 166 254 247)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#397F70" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#172420" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="124" fill="#111A18"/>
+  <circle cx="256" cy="250" r="180" fill="url(#halo)"/>
+  <path d="M125 373 246 143c4-8 16-8 20 0l121 230" fill="none" stroke="url(#aurora)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M178 276h156" fill="none" stroke="url(#aurora)" stroke-width="24" stroke-linecap="round"/>
+  <path d="m248 147 10-35 11 35 35 11-35 11-11 35-10-35-35-11z" fill="#D5FFF1"/>
+</svg>

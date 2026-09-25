@@ -1,0 +1,87 @@
+<Window x:Class="Auvryxel.PrivacyDashboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Privacy · Auvryxel" Icon="pack://application:,,,/Assets/Auvryxel.ico"
+        Width="720" Height="650" MinWidth="620" MinHeight="560"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource AppBackground}"
+        Foreground="{DynamicResource MainText}" UseLayoutRounding="True">
+  <Window.Resources>
+    <Style TargetType="TextBlock"><Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" /><Setter Property="Foreground" Value="{DynamicResource MainText}" /></Style>
+    <Style TargetType="ComboBoxItem">
+      <Setter Property="Foreground" Value="{DynamicResource MainText}" />
+      <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+      <Setter Property="Padding" Value="8,5" />
+      <Style.Triggers>
+        <Trigger Property="IsHighlighted" Value="True"><Setter Property="Background" Value="{DynamicResource HoverBackground}" /></Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="30,25,30,26">
+      <TextBlock Text="PRIVACY" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+      <TextBlock Text="Your data, on this PC." FontSize="28" FontWeight="SemiBold" Margin="0,5,0,3" />
+      <TextBlock Text="A clear view of Auvryxel’s local storage and tracking protection." FontSize="13" Foreground="{DynamicResource MutedText}" Margin="0,0,0,21" />
+
+      <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderBrushColor}" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,13">
+        <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="14"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="16"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <DockPanel>
+            <TextBlock Text="LOCAL BROWSER DATA" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource MutedText}" />
+            <Button x:Name="RefreshButton" DockPanel.Dock="Right" Content="Refresh size" Style="{StaticResource IconButton}" Padding="8,4" FontSize="11" Click="RefreshSize_Click" />
+          </DockPanel>
+          <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Profile storage" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Text="Profile data, downloads, pinned links, and preferences stored together in this local folder." FontSize="11" Foreground="{DynamicResource MutedText}" TextWrapping="Wrap" Margin="0,4,16,0" />
+            </StackPanel>
+            <TextBlock x:Name="ProfileSizeText" Grid.Column="1" Text="Checking…" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </Grid>
+          <TextBlock x:Name="ProfilePathText" Grid.Row="4" FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" />
+          <StackPanel Grid.Row="6" Orientation="Horizontal">
+            <Button Content="Open profile folder" Style="{StaticResource IconButton}" Padding="10,6" FontSize="11" Click="OpenProfile_Click" />
+            <Button Content="Clear browsing data…" Style="{StaticResource IconButton}" Padding="10,6" FontSize="11" Margin="7,0,0,0" Click="ClearBrowsingData_Click" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderBrushColor}" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,13">
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <Border Width="34" Height="34" CornerRadius="11" Background="{DynamicResource AccentSoft}" VerticalAlignment="Top" Margin="0,1,13,0">
+            <TextBlock Text="◈" Foreground="{DynamicResource AccentBrush}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1">
+            <TextBlock Text="TRACKING PROTECTION" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource MutedText}" />
+            <TextBlock x:Name="TrackingLevelText" Text="Strict protection is on" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,3" />
+            <TextBlock Text="WebView2 uses its built-in tracker list to limit storage access and block many known tracker requests. The list and behavior can change with WebView2 updates; some sites may work differently." FontSize="11" Foreground="{DynamicResource MutedText}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderBrushColor}" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,13">
+        <StackPanel>
+          <TextBlock Text="CURRENT SITE PERMISSIONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource MutedText}" />
+          <TextBlock x:Name="SiteOriginText" Text="No website selected" FontSize="15" FontWeight="SemiBold" Margin="0,5,0,3" TextTrimming="CharacterEllipsis" />
+          <TextBlock x:Name="SitePermissionHint" Text="Choose whether this site can use protected device features. Changes are stored in your local browser profile." FontSize="11" Foreground="{DynamicResource MutedText}" TextWrapping="Wrap" Margin="0,0,0,12" />
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/></Grid.ColumnDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Location" FontSize="12" VerticalAlignment="Center" Margin="0,5" />
+            <ComboBox x:Name="LocationChoice" Grid.Row="0" Grid.Column="1" SelectionChanged="PermissionChoice_SelectionChanged" Background="{DynamicResource FieldBackground}" Foreground="{DynamicResource MainText}" BorderBrush="{DynamicResource BorderBrushColor}" Padding="5,3" Margin="5,3" />
+            <TextBlock Grid.Row="1" Text="Camera" FontSize="12" VerticalAlignment="Center" Margin="0,5" />
+            <ComboBox x:Name="CameraChoice" Grid.Row="1" Grid.Column="1" SelectionChanged="PermissionChoice_SelectionChanged" Background="{DynamicResource FieldBackground}" Foreground="{DynamicResource MainText}" BorderBrush="{DynamicResource BorderBrushColor}" Padding="5,3" Margin="5,3" />
+            <TextBlock Grid.Row="2" Text="Microphone" FontSize="12" VerticalAlignment="Center" Margin="0,5" />
+            <ComboBox x:Name="MicrophoneChoice" Grid.Row="2" Grid.Column="1" SelectionChanged="PermissionChoice_SelectionChanged" Background="{DynamicResource FieldBackground}" Foreground="{DynamicResource MainText}" BorderBrush="{DynamicResource BorderBrushColor}" Padding="5,3" Margin="5,3" />
+            <TextBlock Grid.Row="3" Text="Notifications" FontSize="12" VerticalAlignment="Center" Margin="0,5" />
+            <ComboBox x:Name="NotificationsChoice" Grid.Row="3" Grid.Column="1" SelectionChanged="PermissionChoice_SelectionChanged" Background="{DynamicResource FieldBackground}" Foreground="{DynamicResource MainText}" BorderBrush="{DynamicResource BorderBrushColor}" Padding="5,3" Margin="5,3" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Text="Clearing browsing data removes cookies, cache, browsing history, and site storage. Downloaded files, pinned links, and your theme stay in place." FontSize="11" Foreground="{DynamicResource MutedText}" TextWrapping="Wrap" Margin="2,0,2,0" />
+      <TextBlock x:Name="StatusText" FontSize="11" Foreground="{DynamicResource AccentBrush}" Margin="2,12,0,0" Visibility="Collapsed" />
+      <Button Content="Done" HorizontalAlignment="Right" MinWidth="82" Margin="0,19,0,0" Padding="12,7" Click="Done_Click" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Cursor="Hand" />
+    </StackPanel>
+  </ScrollViewer>
+</Window>
